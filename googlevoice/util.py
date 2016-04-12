@@ -311,4 +311,3 @@ class XMLParser(object):
         except:
             raise JSONError
     data = property(data)
-    

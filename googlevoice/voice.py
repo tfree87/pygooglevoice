@@ -1,9 +1,16 @@
+
+# Global Imports
+import base64
+
+
+# Local Imports
 from conf import config
 from util import *
 import settings as settings
-import base64
+
 
 qpat = re.compile(r'\?')
+
 
 if settings.DEBUG:
     import logging
