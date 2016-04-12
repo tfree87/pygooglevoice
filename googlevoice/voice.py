@@ -1,6 +1,6 @@
 from conf import config
 from util import *
-import settings
+import settings as settings
 import base64
 
 qpat = re.compile(r'\?')

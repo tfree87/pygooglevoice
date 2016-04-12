@@ -1,0 +1,14 @@
+from googlevoice import Voice
+from googlevoice.util import input
+
+
+def send_message (voice, text=None, phone_number=None):
+    phone_number = input('Number to send message to: ')
+    text = input('Message text: ')
+    voice = voice
+    voice.send_sms(phoneNumber, text)
+
+if __name__ == '__main__':
+    voice = Voice()
+    voice.login()
+    send_message(voice)
