@@ -1,3 +1,4 @@
+
 ''' 
 A command-line interface to Google Voice 
 '''
@@ -7,17 +8,17 @@ A command-line interface to Google Voice
 import argparse
 from bs4 import BeautifulSoup
 from pprint import pprint
-
+import re
 
 # Local Imports
 from googlevoice import Voice
 
 
-def send_message (voice, text=None, phone_number=None):
+def send_message (text=None, phone_number=None):
     ''' Send a text (SMS) message to a phone number'''
 
     # Initialize values
-    voice = voice
+    voice = login()
     phone_number = phone_number
     text = text
 
@@ -36,40 +37,50 @@ def send_message (voice, text=None, phone_number=None):
 
 def get_settings(voice):
     ''' List your Google Voice settings'''
-
+    voice = login()
     pprint(voice.settings)
 
 
-def print_sms(voice) :
-    conversation_list = get_sms(voice)
-    
+def print_sms() :
+    conversation_list = get_sms()
+
     # Print out each message in the conversation
     for conversation in conversation_list:
-        print('Conversation ' + conversation['id'] + ':')
+        print('Conversation ' + conversation['number'] + ':')
         print('------------------------------------------------------')
         for message in conversation['messages']:
             string = '\t' + message['from'].strip(':') + ' (' + message['time'] + '): ' + message['text']
             print(string)
 
-            
-def get_sms(voice):
-    '''
-    get_sms
-    Returns a list of conversations obtained from Google Voice
-    '''
 
-    voice = voice
+def get_sms():
+    """
+    Returns a list of conversations obtained from Google Voice
+
+    :param voice: A Google Voice object
+    :return: Returns a list of conversations.
+    """
+
+    voice = login()
     voice.sms()
 
-    #	Extract all conversations by searching for a DIV with an ID at top level.
-    tree = BeautifulSoup(voice.sms.html, 'html.parser')			# parse HTML into tree
-    
+    # Extract all conversations by searching for a DIV with an ID at top level.
+    tree = BeautifulSoup(voice.sms.html, 'html.parser')
+
     # Loop through all coversations
-    divs = tree.findAll("div",attrs={"id" : True},recursive=False)
+    divs = tree.findAll('div',attrs={'id' : True},recursive=False)
     conversation_list= []
     for div in divs:
+        # Get the conversation id and associate it with the conversation
         conversation = {'id' : div['id']}
-        #Loop through each message (a.k.a. 'row')
+
+        # Get the phone number associated with the conversation
+        number_spans = div.findAll('span', attrs={'class': 'gc-message-type'}, recursive=True)
+        for item in number_spans:
+            number = re.sub('[^0-9]', '', item.string)
+            conversation['number'] = number
+
+        # Iterate through messages and get content
         rows = div.findAll(attrs={"class" : "gc-message-sms-row"})
         message_list = []
         for row in rows:
@@ -88,7 +99,7 @@ def get_sms(voice):
 
     return conversation_list
 
-            
+
 def parse_arguments():
     '''Read arguments from the command line'''
 
@@ -127,18 +138,20 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+def login():
+    voice = Voice()
+    voice.login()
+    return voice
 
 def main():
     args = parse_arguments()
-    voice = Voice()
-    voice.login()
 
     if args.command == 'sms':
-        send_message(voice, phone_number=args.dial, text=args.text)
+        send_message(phone_number=args.dial, text=args.text)
     elif args.command == 'settings':
-        get_settings(voice)
+        get_settings()
     elif args.command == 'print':
-        print_sms(voice)
+        print_sms()
 
 
 if __name__ == '__main__':
