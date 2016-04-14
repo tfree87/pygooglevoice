@@ -1,4 +1,6 @@
-''' A command-line interface to Google Voice '''
+''' 
+A command-line interface to Google Voice 
+'''
 
 
 # Global Imports
@@ -39,37 +41,54 @@ def get_settings(voice):
 
 
 def print_sms(voice) :
+    conversation_list = get_sms(voice)
+    
+    # Print out each message in the conversation
+    for conversation in conversation_list:
+        print('Conversation ' + conversation['id'] + ':')
+        print('------------------------------------------------------')
+        for message in conversation['messages']:
+            string = '\t' + message['from'].strip(':') + ' (' + message['time'] + '): ' + message['text']
+            print(string)
+
+            
+def get_sms(voice):
     '''
-    print_sms
-    Print out messages in a conversation
+    get_sms
+    Returns a list of conversations obtained from Google Voice
     '''
 
     voice = voice
     voice.sms()
 
-    msgitems = []										# accum message items here
     #	Extract all conversations by searching for a DIV with an ID at top level.
     tree = BeautifulSoup(voice.sms.html, 'html.parser')			# parse HTML into tree
-    conversations = tree.findAll("div",attrs={"id" : True},recursive=False)
-    for conversation in conversations :
-        print(('Convsersation' + ' ' + conversation['id'] + ':'))
-        #	For each conversation, extract each row, which is one SMS message.
-        rows = conversation.findAll(attrs={"class" : "gc-message-sms-row"})
-        for row in rows :								# for all rows
-            #	For each row, which is one message, extract all the fields.
-            msgitem = {"id" : conversation["id"]}		# tag this message with conversation ID
-            spans = row.findAll("span",attrs={"class" : True}, recursive=False)
-            for span in spans : # for all spans in row
-                cl = str(span["class"]).replace('gc-message-sms-', '')
-                cl = cl.replace("['", '')
-                cl = cl.replace("']", '')
-                msgitem[cl] = (" ".join(span.findAll(text=True))).strip()	# put text in dict
-            msgitems.append(msgitem)					# add msg dictionary to list
-        for item in msgitems:
-            string = '\t' + item['from'].strip(':') + ' (' + item['time'] + '): ' + item['text']
-            print(string)
-                
+    
+    # Loop through all coversations
+    divs = tree.findAll("div",attrs={"id" : True},recursive=False)
+    conversation_list= []
+    for div in divs:
+        conversation = {'id' : div['id']}
+        #Loop through each message (a.k.a. 'row')
+        rows = div.findAll(attrs={"class" : "gc-message-sms-row"})
+        message_list = []
+        for row in rows:
+            message = {'id' : div['id']}
+            # Loop through each element of the message and add to dictionary
+            spans = row.findAll('span',attrs={'class' : True}, recursive=False)
+            for span in spans:
+                # Get the category of the span and remove formatting
+                label = str(span['class']).replace("['gc-message-sms-", '')
+                label = label.replace("']", '')
+                # Append text to the dictionary
+                message[label] = (" ".join(span.findAll(text=True))).strip()
+            message_list.append(message)
+        conversation['messages'] = message_list
+        conversation_list.append(conversation)
 
+    return conversation_list
+
+            
 def parse_arguments():
     '''Read arguments from the command line'''
 
