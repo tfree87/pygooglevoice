@@ -1,4 +1,4 @@
-from googlevoice import Voice,util,settings
+from .googlevoice import Voice,util,settings
 
 voice = Voice()
 voice.login()

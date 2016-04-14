@@ -37,4 +37,4 @@ voice.login()
 
 voice.sms()
 for msg in extractsms(voice.sms.html):
-    print str(msg)
+    print(str(msg))

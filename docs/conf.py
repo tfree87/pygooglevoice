@@ -38,8 +38,8 @@ source_suffix = '.txt'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PyGoogleVoice'
-copyright = u'2009, Justin Quick <justquick@gmail.com>'
+project = 'PyGoogleVoice'
+copyright = '2009, Justin Quick <justquick@gmail.com>'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -173,8 +173,8 @@ htmlhelp_basename = 'PyGoogleVoicedoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'PyGoogleVoice.tex', u'PyGoogleVoice Documentation',
-   u'Justin Quick \\textless{}justquick@gmail.com\\textgreater{}', 'manual'),
+  ('index', 'PyGoogleVoice.tex', 'PyGoogleVoice Documentation',
+   'Justin Quick \\textless{}justquick@gmail.com\\textgreater{}', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of

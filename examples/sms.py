@@ -4,7 +4,7 @@ from googlevoice.util import input
 voice = Voice()
 voice.login()
 
-phoneNumber = input('Number to send message to: ')
-text = input('Message text: ')
+phoneNumber = eval(input('Number to send message to: '))
+text = eval(input('Message text: '))
 
 voice.send_sms(phoneNumber, text)

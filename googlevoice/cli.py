@@ -1,14 +1,14 @@
-''' A command-line interface to Google Voice'''
+''' A command-line interface to Google Voice '''
 
 
 # Global Imports
 import argparse
-import BeautifulSoup
+from bs4 import BeautifulSoup
 from pprint import pprint
 
 
 # Local Imports
-from voice import Voice
+from googlevoice import Voice
 
 
 def send_message (voice, text=None, phone_number=None):
@@ -21,9 +21,9 @@ def send_message (voice, text=None, phone_number=None):
 
     # If no values are passed for phone number and text, ask user for input
     if phone_number == None:
-        phone_number = input('Number to send message to: ')
+        phone_number = eval(input('Number to send message to: '))
     if text == None:
-        text = raw_input('Message text: ')
+        text = input('Message text: ')
 
     try:
         voice.send_sms(phone_number, text)
@@ -40,9 +40,8 @@ def get_settings(voice):
 
 def print_sms(voice) :
     '''
-    extractsms 
-    extract SMS messages from BeautifulSoup tree of Google Voice SMS HTML.
-    Output is a list of dictionaries, one per message.
+    print_sms
+    Print out messages in a conversation
     '''
 
     voice = voice
@@ -50,22 +49,24 @@ def print_sms(voice) :
 
     msgitems = []										# accum message items here
     #	Extract all conversations by searching for a DIV with an ID at top level.
-    tree = BeautifulSoup.BeautifulSoup(voice.sms.html)			# parse HTML into tree
+    tree = BeautifulSoup(voice.sms.html, 'html.parser')			# parse HTML into tree
     conversations = tree.findAll("div",attrs={"id" : True},recursive=False)
     for conversation in conversations :
-        print('Convsersation' + ' ' + conversation['id'] + ':')
+        print(('Convsersation' + ' ' + conversation['id'] + ':'))
         #	For each conversation, extract each row, which is one SMS message.
         rows = conversation.findAll(attrs={"class" : "gc-message-sms-row"})
         for row in rows :								# for all rows
             #	For each row, which is one message, extract all the fields.
             msgitem = {"id" : conversation["id"]}		# tag this message with conversation ID
             spans = row.findAll("span",attrs={"class" : True}, recursive=False)
-            for span in spans :							# for all spans in row
-                cl = span["class"].replace('gc-message-sms-', '')
+            for span in spans : # for all spans in row
+                cl = str(span["class"]).replace('gc-message-sms-', '')
+                cl = cl.replace("['", '')
+                cl = cl.replace("']", '')
                 msgitem[cl] = (" ".join(span.findAll(text=True))).strip()	# put text in dict
             msgitems.append(msgitem)					# add msg dictionary to list
         for item in msgitems:
-            string = '\t' + item['from'] + ' ' + item['text']
+            string = '\t' + item['from'].strip(':') + ' (' + item['time'] + '): ' + item['text']
             print(string)
                 
 

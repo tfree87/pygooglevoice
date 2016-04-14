@@ -1,6 +1,11 @@
+'''
+
+'''
+
 
 # Global Imports
 import base64
+import sys
 
 
 # Local Imports
@@ -69,7 +74,7 @@ class Voice(object):
         if email is None:
             email = config.email
         if email is None:
-            email = input('Email address: ')
+            email = eval(input('Email address: '))
 
         if passwd is None:
             passwd = config.password
@@ -79,7 +84,7 @@ class Voice(object):
 
         content = self.__do_page('login').read()
         # holy hackjob
-        galx = re.search(r"type=\"hidden\"\s+name=\"GALX\"\s+value=\"(.+)\"", content).group(1)
+        galx = re.search(br'type=\"hidden\"\s+name=\"GALX\"\s+value=\"(.+)\"', content).group(1)
         result = self.__do_page('login', {'Email': email, 'Passwd': passwd, 'GALX': galx})
 
         if result.geturl().startswith(getattr(settings, "SMSAUTH")):
@@ -121,7 +126,7 @@ class Voice(object):
             while "The code you entered didn&#39;t verify." in content and try_count < 5:
                 sleep_seconds = 10
                 try_count += 1
-                print('invalid code, retrying after %s seconds (attempt %s)' % (sleep_seconds, try_count))
+                print(('invalid code, retrying after %s seconds (attempt %s)' % (sleep_seconds, try_count)))
                 import time
                 time.sleep(sleep_seconds)
                 content = self.__oathtoolAuth(smsKey)
@@ -131,8 +136,8 @@ class Voice(object):
         return content
 
     def __oathtoolAuth(self, smsKey):
-        import commands
-        smsPin = commands.getstatusoutput('oathtool --totp ' + smsKey)[1]
+        import subprocess
+        smsPin = subprocess.getstatusoutput('oathtool --totp ' + smsKey)[1]
         content = self.__do_page('smsauth', {'smsUserPin': smsPin}).read()
         del smsPin
         return content
@@ -181,7 +186,7 @@ class Voice(object):
         """
         Returns a list of ``Phone`` instances attached to your account.
         """
-        return [Phone(self, data) for data in self.contacts['phones'].values()]
+        return [Phone(self, data) for data in list(self.contacts['phones'].values())]
     phones = property(phones)
 
     def settings(self):
@@ -267,6 +272,7 @@ class Voice(object):
         page = page.upper()
         if isinstance(data, dict) or isinstance(data, tuple):
             data = urlencode(data)
+            data = data.encode('utf8')
         headers.update({'User-Agent': 'PyGoogleVoice/0.5'})
         if log:
             log.debug('%s?%s - %s' % (getattr(settings, page)[22:], data or '', headers))
@@ -274,7 +280,7 @@ class Voice(object):
             return urlopen(Request(getattr(settings, page) + data, None, headers))
         if data:
             headers.update({'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'})
-        pageuri = getattr(settings, page)
+        pageuri = getattr(settings, page)        
         if len(terms) > 0:
             m = qpat.match(page)
             if m:
@@ -319,7 +325,7 @@ class Voice(object):
         """
         Performs message operations, eg deleting,staring,moving
         """
-        data = kwargs.items()
+        data = list(kwargs.items())
         for msg in msgs:
             if isinstance(msg, Message):
                 msg = msg.id

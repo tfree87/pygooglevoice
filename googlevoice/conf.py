@@ -1,10 +1,10 @@
 try:
-    from ConfigParser import ConfigParser, NoOptionError
+    from configparser import ConfigParser, NoOptionError
 except:
     from configparser import ConfigParser
     from configparser import NoOptionError
 import os
-import settings
+from settings import *
 
 
 class Config(ConfigParser):
